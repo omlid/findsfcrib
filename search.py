@@ -1,8 +1,9 @@
-import pandas as pd 
+import pandas as pd
 import requests
 import googlemaps
 from bs4 import BeautifulSoup
 import re
+import datetime
 
 search_url_base = "https://sfbay.craigslist.org/search/sfc"
 listing_url_base = "https://sfbay.craigslist.org"
@@ -75,9 +76,9 @@ def get_next_result_page():
 		search_results = BeautifulSoup(rsp.text, 'html.parser')
 		selected_urls = list(set(filter(listing_url_regex.search,[link.get('href') for link in search_results.find_all('a')])))
 		return selected_urls
-	except IndexError: 
+	except IndexError:
 		pass
-	
+
 
 data = {
 	"title":[],
@@ -109,8 +110,12 @@ while len(queue) > 0:
 
 
 
+
+file_name_bro=datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'_cribs.csv'
+print 'results/'+file_name_bro
+
 df = pd.DataFrame(data)
-df.to_csv('fineasscribs.csv')
+df.to_csv('results/'+file_name_bro)
 
 #class = result-row gets you all the lists
 #Class = "attrgroup" will tell you the pets and washer/dryer/dishwasher/parking situation
