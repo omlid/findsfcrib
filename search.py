@@ -17,17 +17,18 @@ min_budget = sum([i[0] for i in user_dict.values()])
 max_budget = sum([i[1] for i in user_dict.values()])
 
 params = {
-	"min_bedrooms":2,
+	"min_bedrooms":3,
+	"min_bathrooms":2,
 	"max_price":max_budget,
-	"min_price":min_budget
+	"min_price":min_budget,
+	"pets_dog": 1
 }
 
 
 #Do no revisit the same post
-visited = {
-}
+visited = {}
 
-rsp = requests.get(url_base, params=params)
+rsp = requests.get(search_url_base, params=params)
 search_results = BeautifulSoup(rsp.text, 'html.parser')
 listing_url_regex = re.compile(r'/sfc/apa/\d?')
 selected_urls = list(set(filter(listing_url_regex.search,[link.get('href') for link in search_results.find_all('a')])))
@@ -70,7 +71,7 @@ def get_next_result_page():
 	global rsp
 	try:
 		next_page_path = str(search_results.find_all('a',class_="button next")[0]['href'])
-		rsp = requests.get(url_base+next_page_path)
+		rsp = requests.get(search_url_base+next_page_path)
 		search_results = BeautifulSoup(rsp.text, 'html.parser')
 		selected_urls = list(set(filter(listing_url_regex.search,[link.get('href') for link in search_results.find_all('a')])))
 		return selected_urls
@@ -100,11 +101,16 @@ while len(queue) > 0:
 		data['mapaddress'].append(mapaddress)
 		data['crib_path'].append(crib_path)
 		visited.update({check_out_crib:True})
-		queue = queue + get_next_result_page()
+		next_page = get_next_result_page()
+		next_page = list(filter(lambda x: (x in visited) == False,next_page))
+		queue = queue + next_page
+		print(len(queue))
+		print(len(visited.keys()))
 
 
 
 df = pd.DataFrame(data)
+df.to_csv('fineasscribs.csv')
 
 #class = result-row gets you all the lists
 #Class = "attrgroup" will tell you the pets and washer/dryer/dishwasher/parking situation
